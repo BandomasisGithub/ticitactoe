@@ -8,6 +8,11 @@
 using namespace std;
 // Tic Tac Toe
 
+
+// MAYBE I SHOULD MAKE STATS TRACKING HOW MANY TIME LOOSE AND WIN
+// CREATE A FILE WHERE TO SAVE NECESERY DATA (TXT FILE I WOULD GUESSAQ)
+// MAYBE A POSIBILITY TO PLAY AGAINST ANOTHER PLAYER
+
 // Main menu again(play, help, exit)
 // Welcoming message
 // Choosing does the player goes first(and ability for random decision)
@@ -493,6 +498,8 @@ void gameLoopBoardOptions(bool const &boardHelpStatus, string &boardData)
     return;
 };
 
+
+// below boardData should be given as reference
 void computersTurn( string boardData,
                     int boardSpacesAmmount,
                     vector<vector<int>> winingCombinations)
@@ -510,21 +517,29 @@ void computersTurn( string boardData,
 
     int playersMarksAmountInRow;
     int pcMarksAmountInRow;
+    
+    
+    // below variables should be given into the function
+    // depending if the players go first or second
+    // or i can hardCode the value and the player could always be X
+    char playersMark = 'X';
+    char computersMark = 'O';
+        
+    //vector<int>* pcWinningCombinationPointer;
 
     for(int i = 0; i < boardSpacesAmmount; i++)
     {
-        if(boardData[i] == 'X')
-        {
             playersMarksAmountInRow = 0;
-            pcMarksAmountInRow = 0;
+            pcMarksAmountInRow = 0; 
+        
             for(vector<int> winingCombination : winingCombinations[i])
             {
                 for(int existingMarkKey : winingCombination)
                 {
-                    if(boardData[existingMarkKey] == 'X')
+                    if(boardData[existingMarkKey] == playersMark)
                     {
                         playersMarksAmountInRow++;
-                    } else if(boardData[existingMarkKey] == 'O')
+                    } else if(boardData[existingMarkKey] == computersMark)
                     {
                         pcMarksAmountInRow++;
                     };
@@ -540,26 +555,49 @@ void computersTurn( string boardData,
 
                 if(playersMarksAmountInRow == 3)
                 {
-                    //Print the message of victory for the player
-                } else if(pcMarksAmountInRow == 2) 
+                    // Print the message of victory for the player
+                    
+                } else if(pcMarksAmountInRow == 2 && playersMarksAmountInRow == 0) 
                 {
-                    //Only should be possible if playersMarksAmountInRow is = 0
-                    //Put there and win
+                    for(int existingMarkKey : winingCombination)
+                    {
+                        if(boardData[existingMarkKey] != computersMark)
+                        {
+                            boardData[existingMarkKey] = computersMark;
+                            // print loosing message for the player
+                            // add to statistics if i make them
+                            
+                        };
+                    };
+                                      
+                    // Only should be possible if playersMarksAmountInRow is = 0
+                    // Put there and win
+                   
                 } else if (playersMarksAmountInRow == 2)
                 {
-                    // save to a variable which is a pointer and points 
-                    // to vector value 
-                    //lets say playersWinningMove
+                    for(int existingMarkKey : winingCombination)
+                    {
+                        if(boardData[existingMarkKey] != playersMark)
+                        {
+                            boardData[existingMarkKey] = computerMark;
+                            // print loosing message for the player
+                            // add to statistics if i make them
+                            
+                        };
+                    };                    
+                    // Save to a variable which is a pointer and points 
+                    // To vector value 
+                    // Let's say playersWinningMove
                 } else if(pcMarksAmountInRow == 1) 
                 {
-                    //Only should be possible if playersMarksAmountInRow is = 0
-                    //save to a pointer vector
-                    // lets say vectorOFOnes
+                    // Only should be possible if playersMarksAmountInRow is = 0
+                    // Save to a pointer vector
+                    // Let's say vectorOFOnes
                 } else if(pcMarksAmountInRow == 0)
                 {
-                    //save to another vector of pointers
-                    //what the fuck i am doing with my life
-                    //lets say vectorsOfTwo
+                    // Save to another vector of pointers
+                    // What the fuck i am doing with my life
+                    // Lets say vectorsOfTwo
                 };
 
                 //check if there is playersWinningMove
@@ -568,10 +606,6 @@ void computersTurn( string boardData,
                 // put mark acording
                 // check vectorOfTwo put there
                 // put mark acording
-
-
-            };
-            
 
         };
     };
@@ -584,7 +618,7 @@ void computersTurn( string boardData,
     //(if there is put there)
     //Check if there is a possibility for a straight 3
     //(if there is put there)
-    //If none of the obove is avaivble put to the firs possible place
+    //If none of the obove is available put to the firs possible place
 
 
 
