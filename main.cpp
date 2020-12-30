@@ -25,10 +25,10 @@ using namespace std;
 void mainMenu();
 void help();
 void clearScreen();
-int gameLoop(); 
-string boardDataVisualRepresantation(const string &boardData);
-string& dataRowConversionToBoard(string &board, const string &boardData, int rowsFirstPlace);
-void gameLoopBoardOptions(bool const &boardHelpStatus, string &boardData);
+int gameLoop();
+string boardDataVisualRepresantation(const string& boardData);
+string& dataRowConversionToBoard(string& board, const string& boardData, int rowsFirstPlace);
+void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData);
 
 
 
@@ -38,7 +38,7 @@ vector<int> GLOBAL_boardSpaceCordinates;
 vector<string> GLOBAL_emptyBoard;
 
 
-int main() 
+int main()
 {
 
     //BoardPlaces
@@ -77,32 +77,35 @@ void mainMenu()
         std::cout << "Press 3 to exit" << std::endl;
         std::cin >> playersChoise;
 
-        if(playersChoise == "1")
+        if (playersChoise == "1")
         {
             int menuFromGameLoop = 1;
             int gameExitCode = gameLoop();
 
-            if(gameExitCode != menuFromGameLoop) {
+            if (gameExitCode != menuFromGameLoop) {
 
                 return;
             };
-        } else if(playersChoise == "2") {
+        }
+        else if (playersChoise == "2") {
             clearScreen();
             help();
-            
-        } else if(playersChoise == "3") {
+
+        }
+        else if (playersChoise == "3") {
 
             return;
-        } else {
+        }
+        else {
             std::cout << "There is no such comand try retype the comand" << std::endl;
         };
-    } while(firstInfiniteLoopStatement != secondInfiniteLoopStatement);
-    
+    } while (firstInfiniteLoopStatement != secondInfiniteLoopStatement);
+
     return;
 };
 
 int gameLoop()
-{   
+{
     // using vector rather than a string because when you take a string[i]
     // it becomes a char which complicates check for me latter
 
@@ -122,9 +125,9 @@ int gameLoop()
     choosableBoardSpaces.push_back("8");
     choosableBoardSpaces.push_back("9");
 
-    
+
     // return 1 if I want to exit the program return 0 if I want to go back to menu
-     
+
     //Ask To choose who starts 
     string playersInput;
     string exitMainMenuValue = "1";
@@ -156,25 +159,27 @@ int gameLoop()
     std::cout << boardDataVisualRepresantation(boardView);
     std::cout << std::endl;
 
-        // this should be one of jumping points
-    while(1 != 0)
+    // this should be one of jumping points
+    while (1 != 0)
     {
 
         std::cin >> playersChoise;
 
-        if(playersChoise == "0") 
+        if (playersChoise == "0")
         {
             clearScreen();
             return 1;
-        } else if(playersChoise == "h") {   
+        }
+        else if (playersChoise == "h") {
 
             clearScreen();
             boardHelpStatus = !boardHelpStatus;
             gameLoopBoardOptions(boardHelpStatus, boardView);
-            
-            
- 
-        } else if(playersChoise == "m") 
+
+
+
+        }
+        else if (playersChoise == "m")
         {
             clearScreen();
             std::cout << "The board was change to show places and marks" << std::endl;
@@ -183,16 +188,18 @@ int gameLoop()
 
             continue;
 
-        } else if(playersChoise == "e") 
+        }
+        else if (playersChoise == "e")
         {
             clearScreen();
             std::cout << "The board was change to show only marks" << std::endl;
-            boardView = boardData; 
+            boardView = boardData;
             gameLoopBoardOptions(boardHelpStatus, boardView);
 
             continue;
 
-        } else if(playersChoise == "p")
+        }
+        else if (playersChoise == "p")
         {
             clearScreen();
             std::cout << "The board was change to show only places" << std::endl;
@@ -202,11 +209,11 @@ int gameLoop()
             continue;
         };
 
-        for(int i = 0; i < boardSpacesAmmount; i++) 
+        for (int i = 0; i < boardSpacesAmmount; i++)
         {
-            if(choosableBoardSpaces[i] == playersChoise) {
+            if (choosableBoardSpaces[i] == playersChoise) {
 
-                if(boardData[i] == 'X' || boardData[i] == 'O') 
+                if (boardData[i] == 'X' || boardData[i] == 'O')
                 {
                     clearScreen();
                     gameLoopBoardOptions(boardHelpStatus, boardView);
@@ -219,16 +226,16 @@ int gameLoop()
                 boardData[i] = playersMark;
                 boardDataWithSpaces[i] = playersMark;
                 boardView[i] = playersMark;
-    
+
                 clearScreen();
-                gameLoopBoardOptions(boardHelpStatus, boardView);   
-                
+                gameLoopBoardOptions(boardHelpStatus, boardView);
+
                 break;
-            }; 
+            };
 
             clearScreen();
             gameLoopBoardOptions(boardHelpStatus, boardView);
-            std::cout << "Choose an existing space" << std::endl; 
+            std::cout << "Choose an existing space" << std::endl;
         };
     };
     //should reloop to the start with changed board
@@ -243,27 +250,27 @@ int gameLoop()
     std::cout << std::endl;
     std::cout << boardDataVisualRepresantation(boardS paces);
     */
-    
+
     //should reloop to let a player input the required place of the board 
     return 1;
 
 
-        
-            //how to get Whole number part in c++
-            //https://stackoverflow.com/questions/47837838/get-decimal-part-of-a-number
-            //https://en.cppreference.com/w/cpp/numeric/math/modf
-            //i should get whole number of i/3 which would be 1, 2 or 3
-            // then give that number to determine which row is let say
-            // GLOBAL_emptyBoard
-            //1 should be 0, 2 should be 2, 3 should be 4
-            //try to count smartly somehow or instead vector use map
-            // and call that number lets say COF
 
-            // after that save(example): 
-            //GLOBAL_emptyBoard[COF][GLOBAL_boardSpaceCordinates[spaceCordinate]] = playersMark;
+    //how to get Whole number part in c++
+    //https://stackoverflow.com/questions/47837838/get-decimal-part-of-a-number
+    //https://en.cppreference.com/w/cpp/numeric/math/modf
+    //i should get whole number of i/3 which would be 1, 2 or 3
+    // then give that number to determine which row is let say
+    // GLOBAL_emptyBoard
+    //1 should be 0, 2 should be 2, 3 should be 4
+    //try to count smartly somehow or instead vector use map
+    // and call that number lets say COF
+
+    // after that save(example): 
+    //GLOBAL_emptyBoard[COF][GLOBAL_boardSpaceCordinates[spaceCordinate]] = playersMark;
 
 
-            // move to pc move and end this function
+    // move to pc move and end this function
 
 
 
@@ -279,18 +286,18 @@ int gameLoop()
     return 1;
     // Below chek for later
     /*
-    if(playersInput == exitMainMenuValue) 
+    if(playersInput == exitMainMenuValue)
     {
         return 1;
-    } else if(playersInput == "first") 
+    } else if(playersInput == "first")
     {
-        
+
         // get the board view
         // choose a number
         // chekc if its legal
         // mark if legal warning if not
-        // give pc a turn 
-    } else if(playersInput == "second") 
+        // give pc a turn
+    } else if(playersInput == "second")
     {
         //pc checks only empty space
         //if check empty space doesn't make the win for other player
@@ -305,7 +312,7 @@ int gameLoop()
 };
 
 void help()
-{ 
+{
     string playersInput;
 
     std::cout << "1. You choose who starts first (you or pc)" << std::endl;
@@ -319,75 +326,76 @@ void help()
     std::cout << std::endl;
     std::cout << "X | X | X    O | O | O" << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  |   |   Or   |   |  " << std::endl;   
-    std::cout << "---------    ---------" << std::endl;
-    std::cout << "  |   |        |   |  " << std::endl;  
-    std::cout << std::endl; 
-    std::cout << std::endl;
-    std::cout << "  |   |        |   |  " << std::endl;
-    std::cout << "---------    ---------" << std::endl;
-    std::cout << "X | X | X Or O | O | O" << std::endl;   
+    std::cout << "  |   |   Or   |   |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
     std::cout << "  |   |        |   |  " << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "  |   |        |   |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  |   |   Or   |   |  " << std::endl;   
+    std::cout << "X | X | X Or O | O | O" << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "X | X | X    O | O | O" << std::endl;   
+    std::cout << "  |   |        |   |  " << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "  |   |        |   |  " << std::endl;
+    std::cout << "---------    ---------" << std::endl;
+    std::cout << "  |   |   Or   |   |  " << std::endl;
+    std::cout << "---------    ---------" << std::endl;
+    std::cout << "X | X | X    O | O | O" << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "  |   | X      |   | O" << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  | X |   Or   | O |  " << std::endl;   
+    std::cout << "  | X |   Or   | O |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "X |   |      O |   |  " << std::endl;  
+    std::cout << "X |   |      O |   |  " << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "X |   |      O |   |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  | X |   Or   | O |  " << std::endl;   
+    std::cout << "  | X |   Or   | O |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  |   | X      |   | O" << std::endl;  
-    std::cout << std::endl; 
+    std::cout << "  |   | X      |   | O" << std::endl;
+    std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "  | X |        | O |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  | X |   Or   | O |  " << std::endl;   
+    std::cout << "  | X |   Or   | O |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  | X |        | O |  " << std::endl;  
-    std::cout << std::endl; 
+    std::cout << "  | X |        | O |  " << std::endl;
+    std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "X |   |      O |   |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "X |   |   Or O |   |  " << std::endl;   
+    std::cout << "X |   |   Or O |   |  " << std::endl;
     std::cout << "---------    ---------" << std::endl;
     std::cout << "X |   |      O |   |  " << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "  |   | X      |   | O" << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  |   | X Or   |   | O" << std::endl;   
+    std::cout << "  |   | X Or   |   | O" << std::endl;
     std::cout << "---------    ---------" << std::endl;
-    std::cout << "  |   | X      |   | O" << std::endl;  
+    std::cout << "  |   | X      |   | O" << std::endl;
     std::cout << std::endl;
-    std::cout << std::endl; 
+    std::cout << std::endl;
 
     std::cout << "To go back to previous menu press 1" << std::endl;
 
-    previousMenu:
+previousMenu:
 
     std::cin >> playersInput;
-    if(playersInput == "1")
+    if (playersInput == "1")
     {
-        
+
         return;
-    } else 
+    }
+    else
     {
         std::cout << "There is no such comand try retype the comand" << std::endl;
 
-        goto previousMenu; 
+        goto previousMenu;
     };
 
     return;
@@ -402,21 +410,21 @@ void clearScreen()
     DWORD                      cellCount;
     COORD                      homeCoords = { 0, 0 };
 
-    hStdOut = GetStdHandle( STD_OUTPUT_HANDLE );
+    hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hStdOut == INVALID_HANDLE_VALUE) return;
 
     // Get the number of cells in the current buffer 
-    if (!GetConsoleScreenBufferInfo( hStdOut, &csbi )) return;
-    cellCount = csbi.dwSize.X *csbi.dwSize.Y;
+    if (!GetConsoleScreenBufferInfo(hStdOut, &csbi)) return;
+    cellCount = csbi.dwSize.X * csbi.dwSize.Y;
 
     // Fill the entire buffer with spaces 
     if (!FillConsoleOutputCharacter(
         hStdOut,
-        (TCHAR) ' ',
+        (TCHAR)' ',
         cellCount,
         homeCoords,
         &count
-        )) return;
+    )) return;
 
     // Fill the entire buffer with the current colors and attributes 
     if (!FillConsoleOutputAttribute(
@@ -425,28 +433,28 @@ void clearScreen()
         cellCount,
         homeCoords,
         &count
-        )) return;
+    )) return;
 
     // Move the cursor home 
-    SetConsoleCursorPosition( hStdOut, homeCoords );
+    SetConsoleCursorPosition(hStdOut, homeCoords);
 };
 
-string& dataRowConversionToBoard(string &board,const string &boardData, int rowsFirstPlace)
+string& dataRowConversionToBoard(string& board, const string& boardData, int rowsFirstPlace)
 {
     int nextPlace = 1;
 
-    board = board + " " 
-        + boardData[rowsFirstPlace] + " | " 
-        + boardData[rowsFirstPlace + nextPlace] + " | "  
+    board = board + " "
+        + boardData[rowsFirstPlace] + " | "
+        + boardData[rowsFirstPlace + nextPlace] + " | "
         + boardData[rowsFirstPlace + nextPlace + nextPlace] + " ";
-    board += '\n'; 
+    board += '\n';
 
-    return board; 
+    return board;
 };
 
-string boardDataVisualRepresantation(const string &boardData)
+string boardDataVisualRepresantation(const string& boardData)
 {
-    
+
     string visualBoard;
     int firstFirstRowPlace = 0;
     int firstSecondRowPlace = 3;
@@ -461,13 +469,13 @@ string boardDataVisualRepresantation(const string &boardData)
     visualBoard += '\n';
     visualBoard = dataRowConversionToBoard(visualBoard, boardData, firstThirdRowPlace);
     visualBoard += '\n';
-    
+
     return visualBoard;
 };
 
-void gameLoopBoardOptions(bool const &boardHelpStatus, string &boardData)
+void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData)
 {
-    if(boardHelpStatus == false)
+    if (boardHelpStatus == false)
     {
         std::cout << "Write 0 to exit the game" << std::endl;
         std::cout << "See more board options write h" << std::endl;
@@ -477,7 +485,7 @@ void gameLoopBoardOptions(bool const &boardHelpStatus, string &boardData)
         std::cout << std::endl;
         std::cout << boardDataVisualRepresantation(boardData);
         std::cout << std::endl;
-        
+
         return;
     };
 
@@ -500,9 +508,9 @@ void gameLoopBoardOptions(bool const &boardHelpStatus, string &boardData)
 
 
 // below boardData should be given as reference
-void computersTurn( string boardData,
-                    int boardSpacesAmmount,
-                    vector<vector<int>> winingCombinations)
+void computersTurn(string boardData,
+    int boardSpacesAmmount,
+    vector<vector<int>> winingCombinations)
 {
     //Should get string with data
 
@@ -517,99 +525,101 @@ void computersTurn( string boardData,
 
     int playersMarksAmountInRow;
     int pcMarksAmountInRow;
-    
-    
+
+
     // below variables should be given into the function
     // depending if the players go first or second
     // or i can hardCode the value and the player could always be X
     char playersMark = 'X';
     char computersMark = 'O';
-        
+
     //vector<int>* pcWinningCombinationPointer;
 
-    for(int i = 0; i < boardSpacesAmmount; i++)
+    for (int i = 0; i < boardSpacesAmmount; i++)
     {
-            playersMarksAmountInRow = 0;
-            pcMarksAmountInRow = 0; 
-        
-            for(vector<int> winingCombination : winingCombinations[i])
+        playersMarksAmountInRow = 0;
+        pcMarksAmountInRow = 0;
+
+        for (int existingMarkKey : winingCombinations[i])
+        {
+
+            if (boardData[existingMarkKey] == playersMark)
             {
-                for(int existingMarkKey : winingCombination)
-                {
-                    if(boardData[existingMarkKey] == playersMark)
-                    {
-                        playersMarksAmountInRow++;
-                    } else if(boardData[existingMarkKey] == computersMark)
-                    {
-                        pcMarksAmountInRow++;
-                    };
-                };
-
-                //first check all plausible pc wins posibilities
-                //than check oponents pausible wins 
-                //look for posibilities to win:
-                //1. if it is posibble to have three in a row 
-                //2. if there is already mark put pc simbol already
-
-
-
-                if(playersMarksAmountInRow == 3)
-                {
-                    // Print the message of victory for the player
-                    
-                } else if(pcMarksAmountInRow == 2 && playersMarksAmountInRow == 0) 
-                {
-                    for(int existingMarkKey : winingCombination)
-                    {
-                        if(boardData[existingMarkKey] != computersMark)
-                        {
-                            boardData[existingMarkKey] = computersMark;
-                            // print loosing message for the player
-                            // add to statistics if i make them
-                            
-                        };
-                    };
-                                      
-                    // Only should be possible if playersMarksAmountInRow is = 0
-                    // Put there and win
-                   
-                } else if (playersMarksAmountInRow == 2)
-                {
-                    for(int existingMarkKey : winingCombination)
-                    {
-                        if(boardData[existingMarkKey] != playersMark)
-                        {
-                            boardData[existingMarkKey] = computerMark;
-                            // print loosing message for the player
-                            // add to statistics if i make them
-                            
-                        };
-                    };                    
-                    // Save to a variable which is a pointer and points 
-                    // To vector value 
-                    // Let's say playersWinningMove
-                } else if(pcMarksAmountInRow == 1) 
-                {
-                    // Only should be possible if playersMarksAmountInRow is = 0
-                    // Save to a pointer vector
-                    // Let's say vectorOFOnes
-                } else if(pcMarksAmountInRow == 0)
-                {
-                    // Save to another vector of pointers
-                    // What the fuck i am doing with my life
-                    // Lets say vectorsOfTwo
-                };
-
-                //check if there is playersWinningMove
-                // put mark acording 
-                // check vectorOFOnes put there
-                // put mark acording
-                // check vectorOfTwo put there
-                // put mark acording
-
+                playersMarksAmountInRow++;
+            }
+            else if (boardData[existingMarkKey] == computersMark)
+            {
+                pcMarksAmountInRow++;
+            };
         };
+
+            //first check all plausible pc wins posibilities
+            //than check oponents pausible wins 
+            //look for posibilities to win:
+            //1. if it is posibble to have three in a row 
+            //2. if there is already mark put pc simbol already
+
+
+
+            if (playersMarksAmountInRow == 3)
+            {
+                // Print the message of victory for the player
+
+            }
+            else if (pcMarksAmountInRow == 2 && playersMarksAmountInRow == 0)
+            {
+                for (int existingMarkKey : winingCombinations[i])
+                {
+                    if (boardData[existingMarkKey] != computersMark)
+                    {
+                        boardData[existingMarkKey] = computersMark;
+                        // print loosing message for the player
+                        // add to statistics if i make them
+
+                    };
+                };
+
+                // Only should be possible if playersMarksAmountInRow is = 0
+                // Put there and win
+
+            }
+            else if (playersMarksAmountInRow == 2)
+            {
+                for (int existingMarkKey : winingCombinations[i])
+                {
+                    if (boardData[existingMarkKey] != playersMark)
+                    {
+                        boardData[existingMarkKey] = computersMark;
+                        // print loosing message for the player
+                        // add to statistics if i make them
+
+                    };
+                };
+                // Save to a variable which is a pointer and points 
+                // To vector value 
+                // Let's say playersWinningMove
+            }
+            else if (pcMarksAmountInRow == 1)
+            {
+                // Only should be possible if playersMarksAmountInRow is = 0
+                // Save to a pointer vector
+                // Let's say vectorOFOnes
+            }
+            else if (pcMarksAmountInRow == 0)
+            {
+                // Save to another vector of pointers
+                // What the fuck i am doing with my life
+                // Lets say vectorsOfTwo
+            };
+
+            //check if there is playersWinningMove
+            // put mark acording 
+            // check vectorOFOnes put there
+            // put mark acording
+            // check vectorOfTwo put there
+            // put mark acording
     };
-    
+
 
 
     //Should check if there is space if put pc wins
@@ -623,4 +633,3 @@ void computersTurn( string boardData,
 
 
 }
-
