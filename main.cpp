@@ -29,10 +29,19 @@ int gameLoop();
 string boardDataVisualRepresantation(const string& boardData);
 string& dataRowConversionToBoard(string& board, const string& boardData, int rowsFirstPlace);
 void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData);
+bool lastSquareWinningCheck(int winingCombinationKey,
+                            const string& boardData,
+                            char playersMark);
+void winingCombinationsCreation(int firstFieldKey, 
+                                int secondFieldKey, 
+                                int thirdFieldKey);
 
+void computersTurn(string &boardData);
 
-
-vector<string> GLOBAL_winningCombinations;
+//vektoriu vektoriu vektorius reiktu pasiziuret alternatyva sitam 
+//negeneliam sumanymui nes gale gaunas kaip is simpsonu
+// masinu masinu masinos
+vector<vector<vector<int>>> GLOBAL_winningCombinations(9);
 vector<string> GLOBAL_boardPlaces;
 vector<int> GLOBAL_boardSpaceCordinates;
 vector<string> GLOBAL_emptyBoard;
@@ -48,15 +57,50 @@ int main()
     // The function later is using with % operator
     //All winning lines combinations 
 
-    GLOBAL_winningCombinations.push_back("123");
-    GLOBAL_winningCombinations.push_back("456");
-    GLOBAL_winningCombinations.push_back("789");
-    GLOBAL_winningCombinations.push_back("147");
-    GLOBAL_winningCombinations.push_back("258");
-    GLOBAL_winningCombinations.push_back("369");
-    GLOBAL_winningCombinations.push_back("159");
-    GLOBAL_winningCombinations.push_back("357");
+    //THIS FUNCTION CHANGES GLOBAL STATE BE AWARE
 
+    //first field's wining combinations
+    winingCombinationsCreation(0, 3, 6);
+    winingCombinationsCreation(0, 1, 2);
+    winingCombinationsCreation(0, 4, 8);
+
+    //second field's wining combinations
+    winingCombinationsCreation(1, 0, 2);
+    winingCombinationsCreation(1, 4, 7);
+
+    //third field's wining combinations
+    winingCombinationsCreation(2, 0, 1);
+    winingCombinationsCreation(2, 5, 8);
+    winingCombinationsCreation(2, 4, 6);
+
+    //fourth field's wining combinations
+    winingCombinationsCreation(3, 0, 6);
+    winingCombinationsCreation(3, 4, 5);
+
+    //fifth field's wining combinations
+    winingCombinationsCreation(4, 3, 5);
+    winingCombinationsCreation(4, 1, 7);
+    winingCombinationsCreation(4, 0, 8);
+    winingCombinationsCreation(4, 2, 6);
+    
+    //sixth field's wining combinations
+    winingCombinationsCreation(5, 2, 8);
+    winingCombinationsCreation(5, 3, 4);
+
+    //seventh field's wining combinations
+    winingCombinationsCreation(6, 0, 3);
+    winingCombinationsCreation(6, 7, 8);
+    winingCombinationsCreation(6, 2, 4);
+
+    //eighth field's wining combinations
+    winingCombinationsCreation(7, 6, 8);
+    winingCombinationsCreation(7, 4, 1);
+
+    //ninth field's wining combinations
+    winingCombinationsCreation(8, 4, 0);
+    winingCombinationsCreation(8, 2, 5);
+    winingCombinationsCreation(8, 6, 7);
+    
     mainMenu();
 
     return 0;
@@ -229,6 +273,19 @@ int gameLoop()
 
                 clearScreen();
                 gameLoopBoardOptions(boardHelpStatus, boardView);
+
+                //tikrinti ar yra laimintis variantas
+                bool gameWinLooseStatus = lastSquareWinningCheck(
+                                            i,
+                                            boardData,
+                                            playersMark);
+                if(gameWinLooseStatus == true) 
+                {
+                    std::cout << "WIN BABYYYY";
+                    // wining message and going back to the main menu
+                }
+
+                computersTurn(boardData);
 
                 break;
             };
@@ -508,9 +565,7 @@ void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData)
 
 
 // below boardData should be given as reference
-void computersTurn(string boardData,
-    int boardSpacesAmmount,
-    vector<vector<int>> winingCombinations)
+void computersTurn(string &boardData)
 {
     //Should get string with data
 
@@ -522,7 +577,7 @@ void computersTurn(string boardData,
     //for start at least 
     // should start reading algorithms book again 
     // from changed GLOBAL_winningCombinations take 
-
+    int boardSpacesAmmount = 9;
     int playersMarksAmountInRow;
     int pcMarksAmountInRow;
 
@@ -532,26 +587,33 @@ void computersTurn(string boardData,
     // or i can hardCode the value and the player could always be X
     char playersMark = 'X';
     char computersMark = 'O';
-
+    int firstCheckSpaceKey = 100;
+    int secondCheckSpaceKey = 100;
+    int thirdCheckSpaceKey = 100;
+    int forthCheckSpaceKey = 100;
+    
     //vector<int>* pcWinningCombinationPointer;
 
     for (int i = 0; i < boardSpacesAmmount; i++)
     {
-        playersMarksAmountInRow = 0;
-        pcMarksAmountInRow = 0;
 
-        for (int existingMarkKey : winingCombinations[i])
+        for (vector<int> winingCombination : GLOBAL_winningCombinations[i])
         {
+            playersMarksAmountInRow = 0;
+            pcMarksAmountInRow = 0;
 
-            if (boardData[existingMarkKey] == playersMark)
+            for(int placeToCheck : winingCombination)
             {
-                playersMarksAmountInRow++;
-            }
-            else if (boardData[existingMarkKey] == computersMark)
-            {
-                pcMarksAmountInRow++;
+                if (boardData[placeToCheck] == playersMark)
+                {
+                    playersMarksAmountInRow++;
+
+                } else if (boardData[placeToCheck] == computersMark)
+                {
+                    pcMarksAmountInRow++;
+                };
             };
-        };
+        
 
             //first check all plausible pc wins posibilities
             //than check oponents pausible wins 
@@ -559,77 +621,243 @@ void computersTurn(string boardData,
             //1. if it is posibble to have three in a row 
             //2. if there is already mark put pc simbol already
 
-
-
-            if (playersMarksAmountInRow == 3)
+            if (pcMarksAmountInRow == 2 && playersMarksAmountInRow == 0)
             {
-                // Print the message of victory for the player
 
-            }
-            else if (pcMarksAmountInRow == 2 && playersMarksAmountInRow == 0)
-            {
-                for (int existingMarkKey : winingCombinations[i])
+
+                for (int placeToCheck : winingCombination)
                 {
-                    if (boardData[existingMarkKey] != computersMark)
+                    //sita nk neirasineti i variable nes jei yra tai pabaigt tikrinima
+                    // bet tiktai neirasineti jei playersMarksAmountInRow == 3
+                    // tikrinu po player  
+
+                    if (boardData[placeToCheck] != computersMark)
                     {
-                        boardData[existingMarkKey] = computersMark;
+                        boardData[placeToCheck] = computersMark;
+                        
+                        return;
                         // print loosing message for the player
                         // add to statistics if i make them
-
                     };
                 };
 
                 // Only should be possible if playersMarksAmountInRow is = 0
                 // Put there and win
 
-            }
-            else if (playersMarksAmountInRow == 2)
+            } else if (playersMarksAmountInRow == 2 && pcMarksAmountInRow == 0)
             {
-                for (int existingMarkKey : winingCombinations[i])
+
+                // tureciau irasyti i vector<int> key arba
+                // memory adress vector
+                //teoriskai tai uztenka int variable tiktai nes jei yra tai nereikia nk daugiau tikrint
+
+
+                // Sita dalis turetu eit po for each ir tada patikrint 
+                for (int placeToCheck : winingCombination)
                 {
-                    if (boardData[existingMarkKey] != playersMark)
+                    if (boardData[placeToCheck] != playersMark)
                     {
-                        boardData[existingMarkKey] = computersMark;
+                        firstCheckSpaceKey = placeToCheck;
+                        //boardData[placeToCheck] = computersMark;
                         // print loosing message for the player
                         // add to statistics if i make them
-
+                        //return;
                     };
                 };
                 // Save to a variable which is a pointer and points 
                 // To vector value 
                 // Let's say playersWinningMove
             }
-            else if (pcMarksAmountInRow == 1)
+            else if (pcMarksAmountInRow == 1 && playersMarksAmountInRow == 0)
             {
+                
+                for (int placeToCheck : winingCombination)
+                {
+                    if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
+                    {
+
+                        secondCheckSpaceKey = placeToCheck;
+                        break;
+
+                    } else if(secondCheckSpaceKey != 4 &&   
+                            (placeToCheck == 0 || placeToCheck == 2 ||
+                            placeToCheck == 8 || placeToCheck == 6) && 
+                            boardData[placeToCheck] == ' ')
+                    {
+
+                        secondCheckSpaceKey = placeToCheck;
+
+                    } else if(secondCheckSpaceKey == 100 && 
+                            boardData[placeToCheck] == ' ')
+                    {
+
+                        secondCheckSpaceKey = placeToCheck; 
+
+                    };
+                };
+
                 // Only should be possible if playersMarksAmountInRow is = 0
                 // Save to a pointer vector
                 // Let's say vectorOFOnes
             }
-            else if (pcMarksAmountInRow == 0)
+            else if (pcMarksAmountInRow == 0 && playersMarksAmountInRow == 0)
             {
+                for (int placeToCheck : winingCombination)
+                {
+                    if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
+                    {
+
+                        thirdCheckSpaceKey = placeToCheck;
+
+                    } else if((placeToCheck == 0 || placeToCheck == 2 ||
+                              placeToCheck == 8 || placeToCheck == 6) && 
+                              boardData[placeToCheck] == ' ')
+                    {
+
+                        thirdCheckSpaceKey = placeToCheck;
+
+                    }else if(secondCheckSpaceKey == 100 && 
+                            boardData[placeToCheck] == ' ')
+                    {
+
+                        thirdCheckSpaceKey = placeToCheck; 
+
+                    };
+                };
                 // Save to another vector of pointers
                 // What the fuck i am doing with my life
                 // Lets say vectorsOfTwo
-            };
+            } else 
+            {
+                for (int placeToCheck : winingCombination)
+                {
+                    if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
+                    {
 
+                        forthCheckSpaceKey = placeToCheck;
+
+                    } else if((placeToCheck == 0 || placeToCheck == 2 ||
+                              placeToCheck == 8 || placeToCheck == 6) && 
+                              boardData[placeToCheck] == ' ')
+                    {
+
+                        forthCheckSpaceKey = placeToCheck;
+
+                    }   else if(secondCheckSpaceKey == 100 && 
+                            boardData[placeToCheck] == ' ')
+                    {
+
+                        forthCheckSpaceKey = placeToCheck; 
+
+                    };
+                };
+            };
             //check if there is playersWinningMove
             // put mark acording 
             // check vectorOFOnes put there
             // put mark acording
             // check vectorOfTwo put there
             // put mark acording
+        };
     };
 
+    if(firstCheckSpaceKey != 100)
+    {
+        boardData[firstCheckSpaceKey] = computersMark;
+        
+        return;
+    } else if (secondCheckSpaceKey != 100)
+    {
+        boardData[secondCheckSpaceKey] = computersMark;
+        
+        return;       
+    }  else if (thirdCheckSpaceKey != 100)
+    {
+        boardData[thirdCheckSpaceKey] = computersMark;
+        
+        return;       
+    } else {
+        boardData[forthCheckSpaceKey] = computersMark;
+    };
 
+    std::cout << "Well this is unexpected something went wrong in computersTurn" << std::endl;
 
-    //Should check if there is space if put pc wins
-    //(if there is put there)
-    //Should check if there is space if put the player wins
-    //(if there is put there)
-    //Check if there is a possibility for a straight 3
-    //(if there is put there)
-    //If none of the obove is available put to the firs possible place
+    return;
+};
 
+bool lastSquareWinningCheck(int winingCombinationKey,
+                            const string& boardData,
+                            char playersMark)
+{
+    for(vector<int> winingCombination : GLOBAL_winningCombinations[winingCombinationKey])
+    {
+        int markAmountInRow = 0;
 
+        for(int winingCombinationPlace : winingCombination)
+        {
+            if(boardData[winingCombinationPlace] == playersMark)
+            { 
+                markAmountInRow++;
+                continue;
+            }
 
-}
+            break;
+        };
+
+        if(markAmountInRow == 3)
+        {
+
+            return true;
+        };
+    };
+
+    return false;
+};
+
+void winingCombinationsCreation(int firstFieldKey, 
+                                int secondFieldKey, 
+                                int thirdFieldKey)
+{
+    // firstFieldKey is also the key by which 
+    // i figure out two which outer vector key it should belong
+    vector<int> winingCombination;
+    winingCombination.push_back(firstFieldKey);
+    winingCombination.push_back(secondFieldKey);
+    winingCombination.push_back(thirdFieldKey);
+
+    GLOBAL_winningCombinations[firstFieldKey].push_back(winingCombination);
+
+    return;
+};
+
+int possibleModeLevel(const vector<int> &winingCombination, 
+                    string boardData, 
+                    int checkSpaceKey)
+{
+    for (int placeToCheck : winingCombination)
+    {
+        if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
+        {
+
+            checkSpaceKey = placeToCheck;
+            break;
+
+        } else if(checkSpaceKey != 4 &&   
+            (placeToCheck == 0 || placeToCheck == 2 ||
+            placeToCheck == 8 || placeToCheck == 6) && 
+            boardData[placeToCheck] == ' ')
+        {
+
+            checkSpaceKey = placeToCheck;
+
+        } else if(checkSpaceKey == 100 && 
+            boardData[placeToCheck] == ' ')
+        {
+
+            checkSpaceKey = placeToCheck; 
+
+        };   
+    };
+
+    return checkSpaceKey;
+};
