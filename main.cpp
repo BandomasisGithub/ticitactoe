@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -12,31 +13,37 @@ using namespace std;
 // MAYBE I SHOULD MAKE STATS TRACKING HOW MANY TIME LOOSE AND WIN
 // CREATE A FILE WHERE TO SAVE NECESERY DATA (TXT FILE I WOULD GUESSAQ)
 // MAYBE A POSIBILITY TO PLAY AGAINST ANOTHER PLAYER
+// possible imposible dificulty
 
-// Main menu again(play, help, exit)
-// Welcoming message
-// Choosing does the player goes first(and ability for random decision)
-// Board
-// PlayerInput
-// Pc input
-// End Game state(win loose)
-// Togle boards(only space numbers, space numbers with made moves, moves without space numbers)
 
 void mainMenu();
 void help();
 void clearScreen();
 int gameLoop();
+void parametersText();
+
 string boardDataVisualRepresantation(const string& boardData);
-string& dataRowConversionToBoard(string& board, const string& boardData, int rowsFirstPlace);
-void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData);
+
+string& dataRowConversionToBoard(string& board, 
+                                const string& boardData, 
+                                int rowsFirstPlace);
+
+void gameLoopBoardOptions(bool const& boardHelpStatus,
+                        string& boardData);
+
 bool lastSquareWinningCheck(int winingCombinationKey,
                             const string& boardData,
                             char playersMark);
+
 void winingCombinationsCreation(int firstFieldKey, 
                                 int secondFieldKey, 
                                 int thirdFieldKey);
 
 void computersTurn(string &boardData);
+
+int possibleModeLevel(const vector<int> &winingCombination, 
+                    string boardData, 
+                    int checkSpaceKey);
 
 //vektoriu vektoriu vektorius reiktu pasiziuret alternatyva sitam 
 //negeneliam sumanymui nes gale gaunas kaip is simpsonu
@@ -49,13 +56,6 @@ vector<string> GLOBAL_emptyBoard;
 
 int main()
 {
-
-    //BoardPlaces
-
-    // To change board space (numbers) into marked places
-    // The push order matters it is reletated to bardSpaceCordinateKey
-    // The function later is using with % operator
-    //All winning lines combinations 
 
     //THIS FUNCTION CHANGES GLOBAL STATE BE AWARE
 
@@ -118,7 +118,9 @@ void mainMenu()
         std::cout << std::endl;
         std::cout << "Press 1 to play the main game" << std::endl;
         std::cout << "Press 2 to see the rules of the game" << std::endl;
-        std::cout << "Press 3 to exit" << std::endl;
+        std::cout << "Press 3 to see game parameters" << std::endl;
+        std::cout << "Press 4 to see your stats" << std::endl;
+        std::cout << "Press 5 to exit" << std::endl;
         std::cin >> playersChoise;
 
         if (playersChoise == "1")
@@ -135,8 +137,77 @@ void mainMenu()
             clearScreen();
             help();
 
-        }
-        else if (playersChoise == "3") {
+        } 
+        else if(playersChoise == "3")
+        {
+            clearScreen();
+            void parametersText();
+
+            string playersChoise;
+            std::cin >> playersChoise;
+
+            if(playersChoise == "0")
+            {
+                
+                return;
+
+            } else if(playersChoise == "1")
+            {
+                clearScreen();
+                //1. Difficulty(Possible) Possible/Impossible
+
+                std::ofstream parameterFile;
+                parameterFile.open("parameters.txt");
+                parameterFile << "Files can be tricky, but it is fun enough!";
+                parameterFile.close();
+                char data[100];
+                parameterFile.open("parameters.txt");
+
+                
+
+                std::ifstream infile; 
+                infile.open("parameters.txt"); 
+
+                cout << "Reading from the file" << endl; 
+                infile >> data;                 
+                // write the data at the screen.
+                cout << data << endl;
+
+                // again read the data from the file and display it.
+                infile >> data; 
+                cout << data << endl;               
+                // close the opened file.
+                infile.close();
+
+
+
+
+                while(1 != 0)
+                {
+                    
+                    
+                };
+
+            } else if(playersChoise == "2")
+            {
+                clearScreen();
+                //2. You start(First) First/Second
+
+            } else if(playersChoise == "3")
+            {
+                clearScreen();
+                //3. Your mark(X) X/O
+            };
+
+            //changingParameters();
+            
+            //to check status
+        }else if(playersChoise == "4")
+        {
+            clearScreen();
+            help();
+            //
+        }else if (playersChoise == "5") {
 
             return;
         }
@@ -150,14 +221,11 @@ void mainMenu()
 
 int gameLoop()
 {
-    // using vector rather than a string because when you take a string[i]
-    // it becomes a char which complicates check for me latter
 
     vector<string> choosableBoardSpaces;
     int boardSpacesAmmount = 9;
     bool boardHelpStatus = false;
     string boardView;
-
 
     choosableBoardSpaces.push_back("1");
     choosableBoardSpaces.push_back("2");
@@ -176,7 +244,6 @@ int gameLoop()
     string playersInput;
     string exitMainMenuValue = "1";
 
-    //string boardData = "---------";
     string boardSpaces = "123456789";
     string boardData = "         ";
     string boardDataWithSpaces = "123456789";
@@ -191,8 +258,7 @@ int gameLoop()
     int playersGuessLength = playersInput.length();
     char playersMark = 'X';
     char opponentMark = 'O';
-    // playersChoise
-    // check if a place exists
+
     clearScreen();
     std::cout << "Write 0 to exit the game" << std::endl;
     std::cout << "See more board options write h" << std::endl;
@@ -341,29 +407,6 @@ int gameLoop()
 
 
     return 1;
-    // Below chek for later
-    /*
-    if(playersInput == exitMainMenuValue)
-    {
-        return 1;
-    } else if(playersInput == "first")
-    {
-
-        // get the board view
-        // choose a number
-        // chekc if its legal
-        // mark if legal warning if not
-        // give pc a turn
-    } else if(playersInput == "second")
-    {
-        //pc checks only empty space
-        //if check empty space doesn't make the win for other player
-        // check if it is possible to win with that space
-        //Values of spaces
-        // empty/ oponent doesnt win/ possible win outcomes
-        //return made move on the board
-    };
-    */
 
     return 0;
 };
@@ -671,30 +714,9 @@ void computersTurn(string &boardData)
             else if (pcMarksAmountInRow == 1 && playersMarksAmountInRow == 0)
             {
                 
-                for (int placeToCheck : winingCombination)
-                {
-                    if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
-                    {
-
-                        secondCheckSpaceKey = placeToCheck;
-                        break;
-
-                    } else if(secondCheckSpaceKey != 4 &&   
-                            (placeToCheck == 0 || placeToCheck == 2 ||
-                            placeToCheck == 8 || placeToCheck == 6) && 
-                            boardData[placeToCheck] == ' ')
-                    {
-
-                        secondCheckSpaceKey = placeToCheck;
-
-                    } else if(secondCheckSpaceKey == 100 && 
-                            boardData[placeToCheck] == ' ')
-                    {
-
-                        secondCheckSpaceKey = placeToCheck; 
-
-                    };
-                };
+                secondCheckSpaceKey = possibleModeLevel(winingCombination, 
+                                boardData,
+                                secondCheckSpaceKey);
 
                 // Only should be possible if playersMarksAmountInRow is = 0
                 // Save to a pointer vector
@@ -702,55 +724,17 @@ void computersTurn(string &boardData)
             }
             else if (pcMarksAmountInRow == 0 && playersMarksAmountInRow == 0)
             {
-                for (int placeToCheck : winingCombination)
-                {
-                    if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
-                    {
-
-                        thirdCheckSpaceKey = placeToCheck;
-
-                    } else if((placeToCheck == 0 || placeToCheck == 2 ||
-                              placeToCheck == 8 || placeToCheck == 6) && 
-                              boardData[placeToCheck] == ' ')
-                    {
-
-                        thirdCheckSpaceKey = placeToCheck;
-
-                    }else if(secondCheckSpaceKey == 100 && 
-                            boardData[placeToCheck] == ' ')
-                    {
-
-                        thirdCheckSpaceKey = placeToCheck; 
-
-                    };
-                };
+                thirdCheckSpaceKey = possibleModeLevel(winingCombination, 
+                                boardData,
+                                thirdCheckSpaceKey);
                 // Save to another vector of pointers
                 // What the fuck i am doing with my life
                 // Lets say vectorsOfTwo
             } else 
             {
-                for (int placeToCheck : winingCombination)
-                {
-                    if(placeToCheck == 4 && boardData[placeToCheck] == ' ')
-                    {
-
-                        forthCheckSpaceKey = placeToCheck;
-
-                    } else if((placeToCheck == 0 || placeToCheck == 2 ||
-                              placeToCheck == 8 || placeToCheck == 6) && 
-                              boardData[placeToCheck] == ' ')
-                    {
-
-                        forthCheckSpaceKey = placeToCheck;
-
-                    }   else if(secondCheckSpaceKey == 100 && 
-                            boardData[placeToCheck] == ' ')
-                    {
-
-                        forthCheckSpaceKey = placeToCheck; 
-
-                    };
-                };
+                forthCheckSpaceKey = possibleModeLevel(winingCombination, 
+                                boardData,
+                                forthCheckSpaceKey);
             };
             //check if there is playersWinningMove
             // put mark acording 
@@ -778,6 +762,8 @@ void computersTurn(string &boardData)
         return;       
     } else {
         boardData[forthCheckSpaceKey] = computersMark;
+
+        return;
     };
 
     std::cout << "Well this is unexpected something went wrong in computersTurn" << std::endl;
@@ -860,4 +846,40 @@ int possibleModeLevel(const vector<int> &winingCombination,
     };
 
     return checkSpaceKey;
+};
+
+void parametersText()
+{
+    std::cout << "To go back to previous menu press 0" << std::endl;
+    std::cout << "To change parameter write the asociated number with it:" << std::endl << std::endl;
+    std::cout << "1. Difficulty(Possible) Possible/Impossible" << std::endl;
+    std::cout << "2. You start(First) First/Second" << std::endl;
+    std::cout << "3. Your mark(X) X/O" << std::endl;
+
+    return;
+};
+
+void changingParameters()
+{
+
+
+    return;
+};
+
+void parameterFile()
+{
+    std::ofstream parameterFile;
+    parameterFile.open("parameters.txt");
+    parameterFile.close();
+
+    return;
+}
+
+void saveFile()
+{
+    std::ofstream saveFile;
+    saveFile.open("saves.txt");
+    saveFile.close();
+
+    return;
 };
