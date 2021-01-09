@@ -8,7 +8,9 @@
 
 using namespace std;
 // Tic Tac Toe
-
+// https://github.com/BandomasisGithub/ticitactoe/edit/main/main.cpp
+// https://vk.com/doc13926071_415928574?hash=2a5c94421dceea8969&dl=ea3692e5b8dce423d8
+// https://github.com/id-Software/Quake-III-Arena/commit/dbe4ddb10315479fc00086f08e25d968b4b43c49
 
 // MAYBE I SHOULD MAKE STATS TRACKING HOW MANY TIME LOOSE AND WIN
 // CREATE A FILE WHERE TO SAVE NECESERY DATA (TXT FILE I WOULD GUESSAQ)
@@ -155,29 +157,30 @@ void mainMenu()
             {
                 clearScreen();
                 //1. Difficulty(Possible) Possible/Impossible
-
+                /*
                 std::ofstream parameterFile;
                 parameterFile.open("parameters.txt");
                 parameterFile << "Files can be tricky, but it is fun enough!";
                 parameterFile.close();
                 char data[100];
                 parameterFile.open("parameters.txt");
-
+                */
                 
-
-                std::ifstream infile; 
-                infile.open("parameters.txt"); 
-
-                cout << "Reading from the file" << endl; 
-                infile >> data;                 
+                std::cout << "Creating the file from the file" << endl;
+                std::ofstream infile; 
+                infile.open("parameters.txt", ios::out); 
+                infile << flush;
+                 
+                //infile >> data;                 
                 // write the data at the screen.
-                cout << data << endl;
+                //cout << data << endl;
 
                 // again read the data from the file and display it.
-                infile >> data; 
-                cout << data << endl;               
+                //infile >> data; 
+                //cout << data << endl;               
                 // close the opened file.
                 infile.close();
+                std::cout << "End of creation" << endl;
 
 
 
