@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <ctype.h> 
 #include <stdio.h> 
+#include <iterator>
 
 using namespace std;
 // Tic Tac Toe
@@ -17,12 +18,35 @@ using namespace std;
 // MAYBE A POSIBILITY TO PLAY AGAINST ANOTHER PLAYER
 // possible imposible dificulty
 
+//To do next:
+// + Mark change
+// + Starting first/secon
+// - Fixing winning loops and loosing loops when i loose nothing hapens
+// - Fixing the game loop it doesnt work there is no win or loose and the board is bs
+// - Possible impossible dificulty
+// - Stat tracker(how many win/ loose depending difficulty)
+
+//One vs One(possibility to play againts othe players)
+
+
+
+
+
+enum parametersPlace {difficulty = 0, moveOrder = 1, mark = 2};
 
 void mainMenu();
 void help();
 void clearScreen();
-int gameLoop();
+int gameLoop(vector<string> parameters);
 void parametersText();
+vector<string> readingParameterFile();
+
+void writingParameterFile(parametersPlace parametersKey,
+                          vector<string> &parameters,
+                          string changeValue);
+
+string writingParameterMenu(string parameterNumber, 
+                            vector<string> &parameters);
 
 string boardDataVisualRepresantation(const string& boardData);
 
@@ -41,12 +65,17 @@ void winingCombinationsCreation(int firstFieldKey,
                                 int secondFieldKey, 
                                 int thirdFieldKey);
 
-void computersTurn(string &boardData);
+void computersTurn(string &boardData,
+                    string &boardDataWithSpaces,
+                    string &boardView,
+                    char playersMark,
+                    char opponentsMark);
 
 int possibleModeLevel(const vector<int> &winingCombination, 
                     string boardData, 
                     int checkSpaceKey);
 
+void saveFileExistence();
 //vektoriu vektoriu vektorius reiktu pasiziuret alternatyva sitam 
 //negeneliam sumanymui nes gale gaunas kaip is simpsonu
 // masinu masinu masinos
@@ -56,11 +85,13 @@ vector<int> GLOBAL_boardSpaceCordinates;
 vector<string> GLOBAL_emptyBoard;
 
 
+
+
 int main()
 {
 
     //THIS FUNCTION CHANGES GLOBAL STATE BE AWARE
-
+    saveFileExistence();
     //first field's wining combinations
     winingCombinationsCreation(0, 3, 6);
     winingCombinationsCreation(0, 1, 2);
@@ -113,6 +144,7 @@ void mainMenu()
     string playersChoise;
     int firstInfiniteLoopStatement = 0;
     int secondInfiniteLoopStatement = 1;
+    string parameterMessage = "";
 
     do {
         //clearScreen();
@@ -123,12 +155,15 @@ void mainMenu()
         std::cout << "Press 3 to see game parameters" << std::endl;
         std::cout << "Press 4 to see your stats" << std::endl;
         std::cout << "Press 5 to exit" << std::endl;
+
         std::cin >> playersChoise;
 
         if (playersChoise == "1")
         {
             int menuFromGameLoop = 1;
-            int gameExitCode = gameLoop();
+            vector<string> parameters = readingParameterFile();
+            int gameExitCode = gameLoop(parameters);
+            
 
             if (gameExitCode != menuFromGameLoop) {
 
@@ -142,69 +177,46 @@ void mainMenu()
         } 
         else if(playersChoise == "3")
         {
-            clearScreen();
-            void parametersText();
-
-            string playersChoise;
-            std::cin >> playersChoise;
-
-            if(playersChoise == "0")
-            {
-                
-                return;
-
-            } else if(playersChoise == "1")
+            while( 1!= 0) 
             {
                 clearScreen();
-                //1. Difficulty(Possible) Possible/Impossible
-                /*
-                std::ofstream parameterFile;
-                parameterFile.open("parameters.txt");
-                parameterFile << "Files can be tricky, but it is fun enough!";
-                parameterFile.close();
-                char data[100];
-                parameterFile.open("parameters.txt");
-                */
                 
-                std::cout << "Creating the file from the file" << endl;
-                std::ofstream infile; 
-                infile.open("parameters.txt", ios::out); 
-                infile << flush;
-                 
-                //infile >> data;                 
-                // write the data at the screen.
-                //cout << data << endl;
+                vector<string> parameters = readingParameterFile();
 
-                // again read the data from the file and display it.
-                //infile >> data; 
-                //cout << data << endl;               
-                // close the opened file.
-                infile.close();
-                std::cout << "End of creation" << endl;
+                std::cout << "Write 0 to return to previous menu" << std::endl;
+                std::cout << "Write 1 to change difficulty" << std::endl;
+                std::cout << "Write 2 to change move order" << std::endl;
+                std::cout << "Write 3 to change mark" << std::endl;
+                std::cout << std::endl;
 
+                std::cout << "Difficulty: " << parameters[difficulty] << std::endl;
+                std::cout << "Move order: " << parameters[moveOrder] << std::endl;
+                std::cout << "Mark: " << parameters[mark] << std::endl;
+                std::cout << std::endl;
 
-
-
-                while(1 != 0)
+                if(parameterMessage != "")
                 {
-                    
-                    
+                    std::cout << std::endl;
+                    std::cout << parameterMessage << std::endl;
                 };
 
-            } else if(playersChoise == "2")
-            {
-                clearScreen();
-                //2. You start(First) First/Second
+                string playersParameterChoise;
+                std::cin >> playersParameterChoise;
+                
+                if(playersParameterChoise == "0")
+                {
+                    clearScreen();
+                    break;
 
-            } else if(playersChoise == "3")
-            {
-                clearScreen();
-                //3. Your mark(X) X/O
+                } else {
+                    
+                    parameterMessage = writingParameterMenu(playersParameterChoise, parameters);
+                    
+                };
             };
-
-            //changingParameters();
-            
-            //to check status
+                //changingParameters();
+                
+                //to check status
         }else if(playersChoise == "4")
         {
             clearScreen();
@@ -222,13 +234,16 @@ void mainMenu()
     return;
 };
 
-int gameLoop()
+int gameLoop(vector<string> parameters)
 {
 
     vector<string> choosableBoardSpaces;
     int boardSpacesAmmount = 9;
     bool boardHelpStatus = false;
     string boardView;
+    parametersPlace parameterKey;
+    char playersMark;
+    char opponentMark;
 
     choosableBoardSpaces.push_back("1");
     choosableBoardSpaces.push_back("2");
@@ -255,26 +270,48 @@ int gameLoop()
     clearScreen();
     std::cout << "To go back to previous menu press 1" << std::endl;
     std::cout << std::endl;
-    std::cout << "Type \"first\" if you want to go first or type \"second\" if you want to go second" << std::endl;
-    std::cin >> playersInput;
+
+    //first HERE IT SHOULD BE REDIRECT TO A FUNCTION
+
+    //if(first -> go to where the player starts first)
+    //else -> go to where the player starts second
 
     int playersGuessLength = playersInput.length();
-    char playersMark = 'X';
-    char opponentMark = 'O';
 
-    clearScreen();
-    std::cout << "Write 0 to exit the game" << std::endl;
-    std::cout << "See more board options write h" << std::endl;
-    std::cout << "Mark a free space by typing its number" << std::endl;
-    std::cout << std::endl;
-    std::cout << "The board view" << std::endl;
-    std::cout << std::endl;
-    std::cout << boardDataVisualRepresantation(boardView);
-    std::cout << std::endl;
+    parameterKey = mark;
+
+    if(parameters[parameterKey][0] == 'X') 
+    {
+        playersMark = 'X';
+        opponentMark = 'O';
+    } else 
+    {
+        playersMark = 'O';
+        opponentMark = 'X';
+    };
+
+    parameterKey = moveOrder;
+
+    if(parameters[moveOrder] == "Second")
+    {
+        computersTurn(boardData,
+                        boardDataWithSpaces,
+                        boardView,
+                        playersMark,
+                        opponentMark);      
+        clearScreen();
+        gameLoopBoardOptions(boardHelpStatus, boardView);
+    };   
+
+
 
     // this should be one of jumping points
+
+ 
+
     while (1 != 0)
     {
+
 
         std::cin >> playersChoise;
 
@@ -322,6 +359,9 @@ int gameLoop()
             continue;
         };
 
+
+
+
         for (int i = 0; i < boardSpacesAmmount; i++)
         {
             if (choosableBoardSpaces[i] == playersChoise) {
@@ -354,7 +394,14 @@ int gameLoop()
                     // wining message and going back to the main menu
                 }
 
-                computersTurn(boardData);
+                computersTurn(boardData,
+                                boardDataWithSpaces,
+                                boardView,
+                                playersMark,
+                                opponentMark);
+
+                clearScreen();
+                gameLoopBoardOptions(boardHelpStatus, boardView);
 
                 break;
             };
@@ -410,8 +457,6 @@ int gameLoop()
 
 
     return 1;
-
-    return 0;
 };
 
 void help()
@@ -491,6 +536,7 @@ previousMenu:
     std::cin >> playersInput;
     if (playersInput == "1")
     {
+        clearScreen();
 
         return;
     }
@@ -611,8 +657,16 @@ void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData)
 
 
 // below boardData should be given as reference
-void computersTurn(string &boardData)
+void computersTurn(string &boardData,
+                    string &boardDataWithSpaces,
+                    string &boardView,     
+                    char playersMark,
+                    char computersMark)
 {
+
+    std::cout << std::endl;
+    std::cout << "Please wait for opponents move";
+    std::cout << std::endl;
     //Should get string with data
 
     //I should make GLOBAL_winningCombinations
@@ -631,8 +685,6 @@ void computersTurn(string &boardData)
     // below variables should be given into the function
     // depending if the players go first or second
     // or i can hardCode the value and the player could always be X
-    char playersMark = 'X';
-    char computersMark = 'O';
     int firstCheckSpaceKey = 100;
     int secondCheckSpaceKey = 100;
     int thirdCheckSpaceKey = 100;
@@ -751,20 +803,30 @@ void computersTurn(string &boardData)
     if(firstCheckSpaceKey != 100)
     {
         boardData[firstCheckSpaceKey] = computersMark;
-        
+        boardDataWithSpaces[firstCheckSpaceKey] = computersMark;
+        boardView[firstCheckSpaceKey] = computersMark;
+
         return;
     } else if (secondCheckSpaceKey != 100)
     {
         boardData[secondCheckSpaceKey] = computersMark;
-        
+        boardDataWithSpaces[secondCheckSpaceKey] = computersMark;
+        boardView[secondCheckSpaceKey] = computersMark;
+
         return;       
     }  else if (thirdCheckSpaceKey != 100)
     {
         boardData[thirdCheckSpaceKey] = computersMark;
-        
+        boardDataWithSpaces[thirdCheckSpaceKey] = computersMark;
+        boardView[thirdCheckSpaceKey] = computersMark;
+
         return;       
     } else {
         boardData[forthCheckSpaceKey] = computersMark;
+        boardDataWithSpaces[forthCheckSpaceKey] = computersMark;
+        boardView[forthCheckSpaceKey] = computersMark;
+
+        std::cout << std::endl;
 
         return;
     };
@@ -851,38 +913,154 @@ int possibleModeLevel(const vector<int> &winingCombination,
     return checkSpaceKey;
 };
 
-void parametersText()
-{
-    std::cout << "To go back to previous menu press 0" << std::endl;
-    std::cout << "To change parameter write the asociated number with it:" << std::endl << std::endl;
-    std::cout << "1. Difficulty(Possible) Possible/Impossible" << std::endl;
-    std::cout << "2. You start(First) First/Second" << std::endl;
-    std::cout << "3. Your mark(X) X/O" << std::endl;
+vector<string> readingParameterFile()
+{   
+    ifstream parameterFile;
+    parameterFile.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt");
+    vector<string> parameters;
+    string parameter;
 
-    return;
-};
-
-void changingParameters()
-{
-
-
-    return;
-};
-
-void parameterFile()
-{
-    std::ofstream parameterFile;
-    parameterFile.open("parameters.txt");
+    while(std::getline(parameterFile, parameter))
+    {
+        parameters.push_back(parameter);
+    };
+    
+    //https://stackoverflow.com/questions/55977686/how-to-read-text-file-lines-into-vectors/55977797
     parameterFile.close();
 
-    return;
-}
+    return parameters;
+    //file()
 
-void saveFile()
+    //std::ofstream parameterFile;
+    //std::ofstream file; 
+    //file.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt", ios::out); 
+};
+
+void writingParameterFile(parametersPlace parametersKey,
+                          vector<string> &parameters,
+                          string changeValue)
 {
-    std::ofstream saveFile;
-    saveFile.open("saves.txt");
+    parameters[parametersKey] = changeValue;
+    string filePath = "C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt";
+    std::ofstream saveFile ("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt", std::ios::out | std::ios::trunc);
+    std::ostream_iterator<std::string> output_iterator(saveFile, "\n");
+    std::copy(parameters.begin(), parameters.end(), output_iterator);
     saveFile.close();
+
+    return;
+};
+
+string writingParameterMenu(string parameterNumber,
+                            vector<string> &parameters)
+{   
+
+    string feedbackMessage;
+    string savedLine;
+    parametersPlace key;
+
+    clearScreen();
+
+    if(parameterNumber == "1")
+    {
+        key = difficulty;        
+        if(parameters[difficulty] == "Possible")
+        {
+
+            writingParameterFile(key,
+                                 parameters,
+                                 "Impossible");
+            /*
+            //parameters[difficulty] = "Impossible";
+            //"Impossible
+            //std::ofstream saveFile ("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt", std::ios::out | std::ios::trunc);
+            //std::ostream_iterator<std::string> output_iterator(saveFile, "\n");
+            //std::copy(parameters.begin(), parameters.end(), output_iterator);
+            //saveFile.close();
+            */
+            /*
+            std::ostream_iterator<std::string> output_iterator(parameterFile, "\n");
+            std::copy(parameters.begin(), parameters.end(), output_iterator);
+            parameterFile.close();
+            */
+                   
+
+
+            return "Your difficulty was change to Impossible";
+        };
+
+        writingParameterFile(key,
+                            parameters,
+                            "Possible");
+
+        return "Your difficulty was change to Possible";
+        // change dificulty
+    } else if(parameterNumber == "2")
+    {
+        key = moveOrder;
+        
+        if(parameters[moveOrder] == "First")
+        {
+            //"Second"
+            writingParameterFile(key,
+                                parameters,
+                                "Second");
+
+            return "You will start second";
+        };
+
+        writingParameterFile(key,
+                            parameters,
+                            "First");
+
+        return "You will start first";
+        // change your move order
+    } else if(parameterNumber == "3")
+    {
+        key = mark;
+        
+        if(parameters[mark] == "X")
+        {
+            //"O"
+            writingParameterFile(key,
+                                parameters,
+                                "O");
+
+            return "Your mark is O";
+        };
+
+        writingParameterFile(key,
+                            parameters,
+                           "X");
+
+        return "Your mark is X";
+        //"X"
+    };
+
+    return "There is no such command. Choose an existing command";
+};
+
+
+void saveFileExistence()
+{    
+    std::ifstream parameterFile;
+    parameterFile.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt", ios::out);
+    vector<string> parameters;
+
+    if(!parameterFile)
+    {
+        std::fstream parameterFile;
+        parameterFile.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt", ios::out);
+        
+        parameters.push_back("Impossible"); // Dificulty
+        parameters.push_back("First"); // Who starts first and who second
+        parameters.push_back("O"); // Mark O or X
+
+        std::ostream_iterator<std::string> output_iterator(parameterFile, "\n");
+        std::copy(parameters.begin(), parameters.end(), output_iterator);
+        parameterFile.close();
+
+        return;
+    };
 
     return;
 };
