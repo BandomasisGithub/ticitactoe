@@ -13,35 +13,35 @@ using namespace std;
 // https://vk.com/doc13926071_415928574?hash=2a5c94421dceea8969&dl=ea3692e5b8dce423d8
 // https://github.com/id-Software/Quake-III-Arena/commit/dbe4ddb10315479fc00086f08e25d968b4b43c49
 
-// MAYBE I SHOULD MAKE STATS TRACKING HOW MANY TIME LOOSE AND WIN
-// CREATE A FILE WHERE TO SAVE NECESERY DATA (TXT FILE I WOULD GUESSAQ)
-// MAYBE A POSIBILITY TO PLAY AGAINST ANOTHER PLAYER
-// possible imposible dificulty
-
 //To do next:
+
 // + Mark change
 // + Starting first/secon
-// - Fixing winning loops and loosing loops when i loose nothing hapens
-// - Fixing the game loop it doesnt work there is no win or loose and the board is bs
+// + Fixing winning loops and loosing loops when i loose nothing hapens
+// + Fixing the game loop it doesnt work there is no win or loose and the board is bs
+// + After game end return a number and outside a gameLoop() function write a if statement which will decide what you do 
+// + Shoul make that after winning or loosing you are shown the board and the only two options play again or go back to main menu
+// + Stat tracker(how many win/ loose depending difficulty)
+
 // - Possible impossible dificulty
-// - Stat tracker(how many win/ loose depending difficulty)
-
-//One vs One(possibility to play againts othe players)
+// - One vs One(possibility to play againts othe players)
 
 
+enum ParametersPlace {Difficulty = 0, MoveOrder = 1, Mark = 2};
 
-
-
-enum parametersPlace {difficulty = 0, moveOrder = 1, mark = 2};
+enum StatsPlace{FirstDifficulty = 0, FirstDifficultyWins = 2, 
+           FirstDifficultyLosses = 4, FirstDifficultyDraw = 6, 
+           SecondDifficulty = 7, SecondDifficultyWins = 9,
+           SecondDifficultyLosses = 11, SecondDifficultyDraw = 13};
 
 void mainMenu();
 void help();
 void clearScreen();
-int gameLoop(vector<string> parameters);
+string gameLoop(vector<string> parameters);
 void parametersText();
 vector<string> readingParameterFile();
 
-void writingParameterFile(parametersPlace parametersKey,
+void writingParameterFile(ParametersPlace parametersKey,
                           vector<string> &parameters,
                           string changeValue);
 
@@ -57,15 +57,16 @@ string& dataRowConversionToBoard(string& board,
 void gameLoopBoardOptions(bool const& boardHelpStatus,
                         string& boardData);
 
-bool lastSquareWinningCheck(int winingCombinationKey,
+string gameEndConditions(int winingCombinationKey,
                             const string& boardData,
-                            char playersMark);
+                            char playersMark,
+                            char opponentMark);
 
 void winingCombinationsCreation(int firstFieldKey, 
                                 int secondFieldKey, 
                                 int thirdFieldKey);
 
-void computersTurn(string &boardData,
+int computersTurn(string &boardData,
                     string &boardDataWithSpaces,
                     string &boardView,
                     char playersMark,
@@ -76,6 +77,12 @@ int possibleModeLevel(const vector<int> &winingCombination,
                     int checkSpaceKey);
 
 void saveFileExistence();
+void statsFileExistence();
+vector<string> readingStatsFile();
+void writingToStatsFile(string gameResult,
+                        string difficulty);
+string endGameMessage(string endGameMessage, string &boardData);
+void statsPage();
 //vektoriu vektoriu vektorius reiktu pasiziuret alternatyva sitam 
 //negeneliam sumanymui nes gale gaunas kaip is simpsonu
 // masinu masinu masinos
@@ -92,6 +99,8 @@ int main()
 
     //THIS FUNCTION CHANGES GLOBAL STATE BE AWARE
     saveFileExistence();
+    statsFileExistence();
+    
     //first field's wining combinations
     winingCombinationsCreation(0, 3, 6);
     winingCombinationsCreation(0, 1, 2);
@@ -151,6 +160,7 @@ void mainMenu()
         std::cout << "Welcome Tic Tac Toe" << std::endl;
         std::cout << std::endl;
         std::cout << "Press 1 to play the main game" << std::endl;
+        std::cout << "Press 2 to play 1 Vs 1 (Local)" << std::endl;
         std::cout << "Press 2 to see the rules of the game" << std::endl;
         std::cout << "Press 3 to see game parameters" << std::endl;
         std::cout << "Press 4 to see your stats" << std::endl;
@@ -160,24 +170,28 @@ void mainMenu()
 
         if (playersChoise == "1")
         {
-            int menuFromGameLoop = 1;
-            vector<string> parameters = readingParameterFile();
-            int gameExitCode = gameLoop(parameters);
+            string menuFromGameLoop = "1";
+
+            while(menuFromGameLoop == "1"){
             
+                vector<string> parameters = readingParameterFile();
+                string gameExitCode = gameLoop(parameters);
+            
+                if (gameExitCode != menuFromGameLoop) {
 
-            if (gameExitCode != menuFromGameLoop) {
-
-                return;
+                    break;
+                };
             };
         }
-        else if (playersChoise == "2") {
+        else if (playersChoise == "3") {
             clearScreen();
             help();
 
         } 
-        else if(playersChoise == "3")
+        else if(playersChoise == "4")
         {
-            while( 1!= 0) 
+            string playersParameterChoise;
+            while(playersParameterChoise != "0") 
             {
                 clearScreen();
                 
@@ -189,9 +203,9 @@ void mainMenu()
                 std::cout << "Write 3 to change mark" << std::endl;
                 std::cout << std::endl;
 
-                std::cout << "Difficulty: " << parameters[difficulty] << std::endl;
-                std::cout << "Move order: " << parameters[moveOrder] << std::endl;
-                std::cout << "Mark: " << parameters[mark] << std::endl;
+                std::cout << "Difficulty: " << parameters[Difficulty] << std::endl;
+                std::cout << "Move order: " << parameters[MoveOrder] << std::endl;
+                std::cout << "Mark: " << parameters[Mark] << std::endl;
                 std::cout << std::endl;
 
                 if(parameterMessage != "")
@@ -200,7 +214,6 @@ void mainMenu()
                     std::cout << parameterMessage << std::endl;
                 };
 
-                string playersParameterChoise;
                 std::cin >> playersParameterChoise;
                 
                 if(playersParameterChoise == "0")
@@ -217,33 +230,35 @@ void mainMenu()
                 //changingParameters();
                 
                 //to check status
-        }else if(playersChoise == "4")
+        }else if(playersChoise == "5")
         {
+            statsPage();
             clearScreen();
-            help();
-            //
-        }else if (playersChoise == "5") {
+            continue;
+        }else if (playersChoise == "6") {
 
             return;
         }
         else {
-            std::cout << "There is no such comand try retype the comand" << std::endl;
+            clearScreen();
+            std::cout << "There is no such comand try to retype the comand" << std::endl;
         };
     } while (firstInfiniteLoopStatement != secondInfiniteLoopStatement);
 
     return;
 };
 
-int gameLoop(vector<string> parameters)
+string gameLoop(vector<string> parameters)
 {
 
     vector<string> choosableBoardSpaces;
     int boardSpacesAmmount = 9;
     bool boardHelpStatus = false;
     string boardView;
-    parametersPlace parameterKey;
-    char playersMark;
+    ParametersPlace parameterKey = Mark;
+    char playersMark = parameters[parameterKey][0];
     char opponentMark;
+    int pcChosenMarkKey;
 
     choosableBoardSpaces.push_back("1");
     choosableBoardSpaces.push_back("2");
@@ -260,39 +275,29 @@ int gameLoop(vector<string> parameters)
 
     //Ask To choose who starts 
     string playersInput;
-    string exitMainMenuValue = "1";
-
     string boardSpaces = "123456789";
     string boardData = "         ";
     string boardDataWithSpaces = "123456789";
     boardView = boardDataWithSpaces;
     string playersChoise;
     clearScreen();
-    std::cout << "To go back to previous menu press 1" << std::endl;
-    std::cout << std::endl;
-
+    
     //first HERE IT SHOULD BE REDIRECT TO A FUNCTION
 
     //if(first -> go to where the player starts first)
     //else -> go to where the player starts second
 
-    int playersGuessLength = playersInput.length();
-
-    parameterKey = mark;
-
-    if(parameters[parameterKey][0] == 'X') 
+    if(playersMark == 'X') 
     {
-        playersMark = 'X';
         opponentMark = 'O';
     } else 
     {
-        playersMark = 'O';
         opponentMark = 'X';
     };
 
-    parameterKey = moveOrder;
+    parameterKey = MoveOrder;
 
-    if(parameters[moveOrder] == "Second")
+    if(parameters[MoveOrder] == "Second")
     {
         computersTurn(boardData,
                         boardDataWithSpaces,
@@ -311,14 +316,14 @@ int gameLoop(vector<string> parameters)
 
     while (1 != 0)
     {
-
-
+        clearScreen();
+        gameLoopBoardOptions(boardHelpStatus, boardView);
         std::cin >> playersChoise;
-
+        
         if (playersChoise == "0")
         {
             clearScreen();
-            return 1;
+            return "0";
         }
         else if (playersChoise == "h") {
 
@@ -326,8 +331,7 @@ int gameLoop(vector<string> parameters)
             boardHelpStatus = !boardHelpStatus;
             gameLoopBoardOptions(boardHelpStatus, boardView);
 
-
-
+            continue;
         }
         else if (playersChoise == "m")
         {
@@ -337,7 +341,6 @@ int gameLoop(vector<string> parameters)
             gameLoopBoardOptions(boardHelpStatus, boardView);
 
             continue;
-
         }
         else if (playersChoise == "e")
         {
@@ -358,9 +361,6 @@ int gameLoop(vector<string> parameters)
 
             continue;
         };
-
-
-
 
         for (int i = 0; i < boardSpacesAmmount; i++)
         {
@@ -384,25 +384,57 @@ int gameLoop(vector<string> parameters)
                 gameLoopBoardOptions(boardHelpStatus, boardView);
 
                 //tikrinti ar yra laimintis variantas
-                bool gameWinLooseStatus = lastSquareWinningCheck(
+                string gameEndStatus = gameEndConditions(
                                             i,
                                             boardData,
-                                            playersMark);
-                if(gameWinLooseStatus == true) 
-                {
-                    std::cout << "WIN BABYYYY";
-                    // wining message and going back to the main menu
-                }
+                                            playersMark,
+                                            opponentMark);
 
-                computersTurn(boardData,
-                                boardDataWithSpaces,
-                                boardView,
-                                playersMark,
-                                opponentMark);
+                if(gameEndStatus == "Win") 
+                {
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+
+                    return endGameMessage("Congrats, you win", boardData);
+
+                    // wining message and going back to the main menu
+                }else if(gameEndStatus == "Draw")
+                {
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+
+                    return endGameMessage("Draw", boardData);
+                };
+
+                pcChosenMarkKey = computersTurn(boardData,
+                                                boardDataWithSpaces,
+                                                boardView,
+                                                playersMark,
+                                                opponentMark);
 
                 clearScreen();
+
                 gameLoopBoardOptions(boardHelpStatus, boardView);
 
+                gameEndStatus = gameEndConditions(
+                                        pcChosenMarkKey,
+                                        boardData,
+                                        playersMark,
+                                   
+                                        opponentMark);
+
+                if(gameEndStatus == "Loose")
+                {
+
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+                    
+                    return endGameMessage("You loose", boardData);
+                    
+                } else if(gameEndStatus == "Draw")
+                {
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+
+                    return endGameMessage("Draw", boardData);
+                };
+    
                 break;
             };
 
@@ -414,7 +446,7 @@ int gameLoop(vector<string> parameters)
     //should reloop to the start with changed board
 
 
-
+    return "0";
 
     /*
     std::cout << boardDataVisualRepresantation(boardData);
@@ -425,8 +457,6 @@ int gameLoop(vector<string> parameters)
     */
 
     //should reloop to let a player input the required place of the board 
-    return 1;
-
 
 
     //how to get Whole number part in c++
@@ -447,16 +477,9 @@ int gameLoop(vector<string> parameters)
 
 
 
-    std::cout << "Choose an existing space" << std::endl;
+    //std::cout << "Choose an existing space" << std::endl;
     // return back to players choise
 
-
-
-
-
-
-
-    return 1;
 };
 
 void help()
@@ -529,12 +552,12 @@ void help()
     std::cout << std::endl;
     std::cout << std::endl;
 
-    std::cout << "To go back to previous menu press 1" << std::endl;
+    std::cout << "To go back to previous menu press 0" << std::endl;
 
 previousMenu:
 
     std::cin >> playersInput;
-    if (playersInput == "1")
+    if (playersInput == "0")
     {
         clearScreen();
 
@@ -657,7 +680,7 @@ void gameLoopBoardOptions(bool const& boardHelpStatus, string& boardData)
 
 
 // below boardData should be given as reference
-void computersTurn(string &boardData,
+int computersTurn(string &boardData,
                     string &boardDataWithSpaces,
                     string &boardView,     
                     char playersMark,
@@ -697,6 +720,7 @@ void computersTurn(string &boardData,
 
         for (vector<int> winingCombination : GLOBAL_winningCombinations[i])
         {
+            
             playersMarksAmountInRow = 0;
             pcMarksAmountInRow = 0;
 
@@ -711,7 +735,6 @@ void computersTurn(string &boardData,
                     pcMarksAmountInRow++;
                 };
             };
-        
 
             //first check all plausible pc wins posibilities
             //than check oponents pausible wins 
@@ -732,8 +755,10 @@ void computersTurn(string &boardData,
                     if (boardData[placeToCheck] != computersMark)
                     {
                         boardData[placeToCheck] = computersMark;
+                        boardDataWithSpaces[placeToCheck] = computersMark;
+                        boardView[placeToCheck] = computersMark;
                         
-                        return;
+                        return placeToCheck;
                         // print loosing message for the player
                         // add to statistics if i make them
                     };
@@ -799,70 +824,95 @@ void computersTurn(string &boardData,
             // put mark acording
         };
     };
-
+    
     if(firstCheckSpaceKey != 100)
     {
         boardData[firstCheckSpaceKey] = computersMark;
         boardDataWithSpaces[firstCheckSpaceKey] = computersMark;
         boardView[firstCheckSpaceKey] = computersMark;
 
-        return;
+        return firstCheckSpaceKey;
+
     } else if (secondCheckSpaceKey != 100)
     {
         boardData[secondCheckSpaceKey] = computersMark;
         boardDataWithSpaces[secondCheckSpaceKey] = computersMark;
         boardView[secondCheckSpaceKey] = computersMark;
 
-        return;       
+        return secondCheckSpaceKey;
+
     }  else if (thirdCheckSpaceKey != 100)
     {
         boardData[thirdCheckSpaceKey] = computersMark;
         boardDataWithSpaces[thirdCheckSpaceKey] = computersMark;
         boardView[thirdCheckSpaceKey] = computersMark;
 
-        return;       
+        return thirdCheckSpaceKey;
+
     } else {
         boardData[forthCheckSpaceKey] = computersMark;
         boardDataWithSpaces[forthCheckSpaceKey] = computersMark;
         boardView[forthCheckSpaceKey] = computersMark;
-
-        std::cout << std::endl;
-
-        return;
+        
+        return forthCheckSpaceKey;
     };
 
     std::cout << "Well this is unexpected something went wrong in computersTurn" << std::endl;
-
-    return;
 };
 
-bool lastSquareWinningCheck(int winingCombinationKey,
+string gameEndConditions(int winingCombinationKey,
                             const string& boardData,
-                            char playersMark)
+                            char playersMark,
+                            char pcMark)
 {
     for(vector<int> winingCombination : GLOBAL_winningCombinations[winingCombinationKey])
     {
-        int markAmountInRow = 0;
+        int playersMarkAmountInARow = 0;
+        int pcMarkAmountInARow = 0;
 
         for(int winingCombinationPlace : winingCombination)
         {
             if(boardData[winingCombinationPlace] == playersMark)
             { 
-                markAmountInRow++;
+                playersMarkAmountInARow++;
                 continue;
-            }
 
-            break;
+            } else if (boardData[winingCombinationPlace] == pcMark)
+            {
+                pcMarkAmountInARow++;
+                continue;
+            };
         };
 
-        if(markAmountInRow == 3)
+        if(playersMarkAmountInARow == 3)
         {
 
-            return true;
+            return "Win";
+
+        } else if(pcMarkAmountInARow == 3)
+        {
+            
+            return "Loose";
         };
     };
 
-    return false;
+    int freeSpaces = 0;
+
+    for(int i = 0; i < 9; i++)
+    {
+        if(boardData[i] != ' ')
+        {
+            freeSpaces++;
+        };
+    };
+
+    if(freeSpaces == 9)
+    {
+        return "Draw";
+    };
+
+    //Draw bullshit and continue to play i guess
+    return "";
 };
 
 void winingCombinationsCreation(int firstFieldKey, 
@@ -936,7 +986,7 @@ vector<string> readingParameterFile()
     //file.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\parameters.txt", ios::out); 
 };
 
-void writingParameterFile(parametersPlace parametersKey,
+void writingParameterFile(ParametersPlace parametersKey,
                           vector<string> &parameters,
                           string changeValue)
 {
@@ -950,20 +1000,103 @@ void writingParameterFile(parametersPlace parametersKey,
     return;
 };
 
+vector<string> readingStatsFile()
+{
+    ifstream statFile;
+    statFile.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\stats.txt");
+    vector<string> stats;
+    string stat;
+
+    while(std::getline(statFile, stat))
+    {
+        stats.push_back(stat);
+    };
+    
+    statFile.close();
+
+    return stats;
+};
+
+void writingToStatsFile(string gameResult,
+                        string difficulty)
+{
+    vector<string> stats = readingStatsFile();
+    /*
+    for(string stat : stats)
+    {
+        std::cout << stat << std::endl;
+    };
+    */
+    string filePath = "C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\stats.txt";
+    std::ofstream statsFile (filePath, std::ios::out | std::ios::trunc);
+    int statCount;
+    StatsPlace statsKey;
+
+    if(difficulty == "Impossible")
+    {
+
+        if(gameResult == "Win")
+        {
+            statCount = std::stoi(stats[FirstDifficultyWins]);
+            statCount++;
+            stats[FirstDifficultyWins] = std::to_string(statCount);
+
+        } else if(gameResult == "Loose")
+        {
+            statCount = std::stoi(stats[FirstDifficultyLosses]);
+            statCount++;
+            stats[FirstDifficultyLosses] = std::to_string(statCount);
+
+        }else if(gameResult == "Draw")
+        {
+            statCount = std::stoi(stats[FirstDifficultyDraw]);
+            statCount++;
+            stats[FirstDifficultyDraw] = std::to_string(statCount);
+        };
+
+    }else
+    {
+        if(gameResult == "Win")
+        {
+            statCount = std::stoi(stats[SecondDifficultyWins]);
+            statCount++;
+            stats[SecondDifficultyWins] = std::to_string(statCount);
+
+        } else if(gameResult == "Loose")
+        {
+            statCount = std::stoi(stats[SecondDifficultyLosses]);
+            statCount++;
+            stats[SecondDifficultyLosses] = std::to_string(statCount);
+
+        }else if(gameResult == "Draw")
+        {
+            statCount = std::stoi(stats[SecondDifficultyDraw]);
+            statCount++;
+            stats[SecondDifficultyDraw] = std::to_string(statCount);
+        };
+    };
+
+    std::ostream_iterator<std::string> output_iterator(statsFile, "\n");
+    std::copy(stats.begin(), stats.end(), output_iterator);
+    statsFile.close();
+
+    return;
+};
+
 string writingParameterMenu(string parameterNumber,
                             vector<string> &parameters)
 {   
 
     string feedbackMessage;
     string savedLine;
-    parametersPlace key;
+    ParametersPlace key;
 
     clearScreen();
 
     if(parameterNumber == "1")
     {
-        key = difficulty;        
-        if(parameters[difficulty] == "Possible")
+        key = Difficulty;        
+        if(parameters[key] == "Possible")
         {
 
             writingParameterFile(key,
@@ -996,9 +1129,9 @@ string writingParameterMenu(string parameterNumber,
         // change dificulty
     } else if(parameterNumber == "2")
     {
-        key = moveOrder;
+        key = MoveOrder;
         
-        if(parameters[moveOrder] == "First")
+        if(parameters[key] == "First")
         {
             //"Second"
             writingParameterFile(key,
@@ -1016,9 +1149,9 @@ string writingParameterMenu(string parameterNumber,
         // change your move order
     } else if(parameterNumber == "3")
     {
-        key = mark;
+        key = Mark;
         
-        if(parameters[mark] == "X")
+        if(parameters[key] == "X")
         {
             //"O"
             writingParameterFile(key,
@@ -1039,6 +1172,42 @@ string writingParameterMenu(string parameterNumber,
     return "There is no such command. Choose an existing command";
 };
 
+
+void statsFileExistence()
+{
+    std::ifstream statsFile;
+    statsFile.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\stats.txt", ios::out);
+    vector<string> stats;
+
+    if(!statsFile)
+    {
+        std::fstream statsFile;
+        statsFile.open("C:\\Users\\sm\\Desktop\\laikiniaIskelti\\truktUzVadziuIrVelIsPradziu\\games\\ticTacToe\\stats.txt", ios::out);
+
+        stats.push_back("Possible");
+        stats.push_back("Win: ");
+        stats.push_back("0");
+        stats.push_back("Losses: ");
+        stats.push_back("0");
+        stats.push_back("Draw: ");
+        stats.push_back("0");
+        stats.push_back("Impossible");
+        stats.push_back("Win: ");
+        stats.push_back("0");
+        stats.push_back("Losses: ");
+        stats.push_back("0");
+        stats.push_back("Draw: ");
+        stats.push_back("0");
+
+        std::ostream_iterator<std::string> output_iterator(statsFile, "\n");
+        std::copy(stats.begin(), stats.end(), output_iterator);
+        statsFile.close();
+
+        return;
+    };
+
+    return;
+};
 
 void saveFileExistence()
 {    
@@ -1064,3 +1233,252 @@ void saveFileExistence()
 
     return;
 };
+
+string endGameMessage(string endGameMessage, string& boardData)
+{
+    string playersChoise;
+    char firstLoopControler = 'a';
+
+    do 
+    {
+        clearScreen();
+        std::cout << std::endl;
+        std::cout << boardDataVisualRepresantation(boardData);
+        std::cout << std::endl;
+        std::cout << endGameMessage << std::endl;
+        std::cout << std::endl;
+        std::cout << "To return to menu press 0";
+        std::cout << std::endl;
+        std::cout << "To play again press 1";
+        std::cout << std::endl;
+        //std::cin >> playersChoise;
+
+        if(playersChoise == "0")
+        {
+            clearScreen();
+
+            return "0";
+        } else if(playersChoise == "1")
+        {
+            clearScreen();
+
+            return "1";
+        } else if(firstLoopControler == 'b')
+        {
+            std::cout << "There is no \"" << playersChoise 
+            << "\" comand, please try to retype the comand";
+        };
+
+        firstLoopControler = 'b';
+        std::cout << std::endl;
+        std::cin >> playersChoise;
+
+    } while(playersChoise != "0" || playersChoise != "1");
+
+    return "0";
+};
+
+void statsPage()
+{
+    vector<string> stats = readingStatsFile();
+    std::cout << std::endl;
+    string playersChoise;
+    char firstLoopControler = 'a';
+
+    while(playersChoise != "0")
+    {
+        clearScreen();
+        std::cout << "Write 0 to return to previous menu" << std::endl;
+        std::cout << std::endl;
+        std::cout << stats[FirstDifficulty] << " diffiuculty: " << std::endl;
+        std::cout << "Wins: " << stats[FirstDifficultyWins] << std::endl;
+        std::cout << "Losses: " << stats[FirstDifficultyLosses] << std::endl;
+        std::cout << "Draws: " << stats[FirstDifficultyDraw] << std::endl;
+        std::cout << std::endl;
+        std::cout << stats[SecondDifficulty] << " diffiuculty: " << std::endl;
+        std::cout << "Wins: " << stats[SecondDifficultyWins] << std::endl;
+        std::cout << "Losses: " << stats[SecondDifficultyLosses] << std::endl;
+        std::cout << "Draws: " << stats[SecondDifficultyDraw] << std::endl;
+
+        if(playersChoise != "0" && firstLoopControler == 'b')
+        {
+            std::cout << std::endl;
+            std::cout << "There is no \"" << playersChoise 
+            << "\" comand, please try to retype the comand";  
+        };
+
+        firstLoopControler = 'b';
+        std::cout << std::endl;
+        std::cin >> playersChoise;
+    };
+
+    return;     
+};
+/*
+string impossibleDificultyLoop(vector<string> parameters,
+                                string boardData,
+                                string boardDataWithSpaces
+                                string boardView,
+                                string playersMark,
+
+
+)
+{
+
+    if(parameters[MoveOrder] == "Second")
+    {
+        computersTurn(boardData,
+                        boardDataWithSpaces,
+                        boardView,
+                        playersMark,
+                        opponentMark);      
+        clearScreen();
+        gameLoopBoardOptions(boardHelpStatus, boardView);
+    };   
+
+
+
+    // this should be one of jumping points
+
+ 
+
+    while (1 != 0)
+    {
+        clearScreen();
+        gameLoopBoardOptions(boardHelpStatus, boardView);
+        std::cin >> playersChoise;
+        
+        if (playersChoise == "0")
+        {
+            clearScreen();
+            return "0";
+        }
+        else if (playersChoise == "h") {
+
+            clearScreen();
+            boardHelpStatus = !boardHelpStatus;
+            gameLoopBoardOptions(boardHelpStatus, boardView);
+
+            continue;
+        }
+        else if (playersChoise == "m")
+        {
+            clearScreen();
+            std::cout << "The board was change to show places and marks" << std::endl;
+            boardView = boardDataWithSpaces;
+            gameLoopBoardOptions(boardHelpStatus, boardView);
+
+            continue;
+        }
+        else if (playersChoise == "e")
+        {
+            clearScreen();
+            std::cout << "The board was change to show only marks" << std::endl;
+            boardView = boardData;
+            gameLoopBoardOptions(boardHelpStatus, boardView);
+
+            continue;
+
+        }
+        else if (playersChoise == "p")
+        {
+            clearScreen();
+            std::cout << "The board was change to show only places" << std::endl;
+            boardView = boardSpaces;
+            gameLoopBoardOptions(boardHelpStatus, boardView);
+
+            continue;
+        };
+
+        for (int i = 0; i < boardSpacesAmmount; i++)
+        {
+            if (choosableBoardSpaces[i] == playersChoise) {
+
+                if (boardData[i] == 'X' || boardData[i] == 'O')
+                {
+                    clearScreen();
+                    gameLoopBoardOptions(boardHelpStatus, boardView);
+                    std::cout << "Choose a FREE space" << std::endl;
+
+                    break;
+                    //Return to guess again
+                };
+
+                boardData[i] = playersMark;
+                boardDataWithSpaces[i] = playersMark;
+                boardView[i] = playersMark;
+
+                clearScreen();
+                gameLoopBoardOptions(boardHelpStatus, boardView);
+
+                //tikrinti ar yra laimintis variantas
+                string gameEndStatus = gameEndConditions(
+                                            i,
+                                            boardData,
+                                            playersMark,
+                                            opponentMark);
+
+                if(gameEndStatus == "Win") 
+                {
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+
+                    return endGameMessage("Congrats, you win", boardData);
+
+                    // wining message and going back to the main menu
+                }else if(gameEndStatus == "Draw")
+                {
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+
+                    return endGameMessage("Draw", boardData);
+                };
+
+                pcChosenMarkKey = computersTurn(boardData,
+                                                boardDataWithSpaces,
+                                                boardView,
+                                                playersMark,
+                                                opponentMark);
+
+                clearScreen();
+
+                gameLoopBoardOptions(boardHelpStatus, boardView);
+
+                gameEndStatus = gameEndConditions(
+                                        pcChosenMarkKey,
+                                        boardData,
+                                        playersMark,
+                                   
+                                        opponentMark);
+
+                if(gameEndStatus == "Loose")
+                {
+
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+                    
+                    return endGameMessage("You loose", boardData);
+                    
+                } else if(gameEndStatus == "Draw")
+                {
+                    writingToStatsFile(gameEndStatus, parameters[Difficulty]);
+
+                    return endGameMessage("Draw", boardData);
+                };
+    
+                break;
+            };
+
+            clearScreen();
+            gameLoopBoardOptions(boardHelpStatus, boardView);
+            std::cout << "Choose an existing space" << std::endl;
+        };
+    };
+    //should reloop to the start with changed board
+
+
+    return "0";
+
+
+
+
+    return "";
+}
+*/
